@@ -7,6 +7,7 @@
 
 int main() {
   gdwg::Graph<std::string, int> g;
+
   g.InsertNode("hello");
   g.InsertNode("how");
   g.InsertNode("are");
@@ -23,14 +24,36 @@ int main() {
 
   std::cout << g << '\n';
 
-  gdwg::Graph<std::string, int> g2{g};
+  // gdwg::Graph<std::string, int> g2{g};
 
-  std::cout << g2 << "\n";
+  // std::cout << g2 << "\n";
 
   // This is a structured binding.
   // https://en.cppreference.com/w/cpp/language/structured_binding
   // It allows you to unpack your tuple.
-  for (const auto& [from, to, weight] : g) {
-    std::cout << from << " -> " << to << " (weight " << weight << ")\n";
-  }
+  // for (const auto& [from, to, weight] : g) {
+  //   std::cout << from << " -> " << to << " (weight " << weight << ")\n";
+  // }
+
+  std::vector<int> vec{1, 2, 3, 4, 5};
+
+  gdwg::Graph<int, int> g2{vec.begin(), vec.end()};
+
+  std::cout << g2 << '\n';
+
+  std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+      std::make_tuple("Bar", "Foo", 3.14)};
+  gdwg::Graph<std::string, int> g3{vecTuples.begin(), vecTuples.end()};
+
+  std::cout << g3 << '\n';
+
+  gdwg::Graph<char, std::string> b{'a', 'b', 'x', 'y'};
+
+  std::cout << b << '\n';
+
+  gdwg::Graph<std::string, int> aCopy;
+
+  aCopy = std::move(g);
+  std::cout << aCopy << '\n';
+  std::cout << "here" << g << "here" << '\n';
 }
