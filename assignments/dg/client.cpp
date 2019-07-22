@@ -53,7 +53,20 @@ int main() {
 
   gdwg::Graph<std::string, int> aCopy;
 
-  aCopy = std::move(g);
-  std::cout << aCopy << '\n';
-  std::cout << "here" << g << "here" << '\n';
+  aCopy = g;
+  std::cout << (aCopy == g) << '\n';
+  g.Replace("you?", "are");
+  std::cout << g << '\n';
+
+  gdwg::Graph<char, int> c;
+  c.InsertNode('A');
+  c.InsertNode('B');
+  c.InsertNode('C');
+  c.InsertNode('D');
+  c.InsertEdge('A', 'B', 1);
+  c.InsertEdge('A', 'C', 2);
+  c.InsertEdge('A', 'D', 3);
+  std::cout << c;
+  c.MergeReplace('A', 'B');
+  std::cout << c;
 }
