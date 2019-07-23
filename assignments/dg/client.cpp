@@ -69,4 +69,23 @@ int main() {
   std::cout << c;
   c.MergeReplace('A', 'B');
   std::cout << c;
+
+  c.Clear();
+  std::cout << "here" << c << "here\n";
+  c.InsertNode('A');
+  c.InsertNode('B');
+  c.InsertNode('C');
+  c.InsertNode('D');
+  c.InsertEdge('A', 'B', 1);
+  c.InsertEdge('A', 'C', 2);
+  c.InsertEdge('A', 'D', 3);
+  std::cout << c;  
+  std::cout << c.IsConnected('A', 'B');
+  std::cout << c.IsConnected('B', 'B') << "\n";
+
+  std::cout << c.GetNodes().size() << "\n";
+  std::cout << c.GetConnected('A').size() << "\n";
+
+  c.erase('A', 'B', 1);
+  std::cout << c << "\n";  
 }

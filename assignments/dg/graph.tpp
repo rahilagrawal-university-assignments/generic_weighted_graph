@@ -174,6 +174,84 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   }
 }
 
+template <typename N, typename E>
+void Graph<N, E>::Clear() {
+  nodes.clear();
+  edges.clear();
+}
+
+template <typename N, typename E>
+bool Graph<N, E>::IsConnected(const N& src, const N& dst) {
+  if (!IsNode(src) || !IsNode(dst)) {
+    throw std::runtime_error("Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+  }
+
+  for (auto edge : edges) {
+    shared_ptr<N> source = edge->source_.lock();
+    shared_ptr<N> destination = edge->destination_.lock();
+    if (src == *source && dst == *destination)
+      return true;
+  }
+  return false;
+}
+
+template <typename N, typename E>
+std::vector<N> Graph<N, E>::GetNodes() {
+  std::vector<N> results;
+  for (auto node : nodes) {
+    results.push_back(*node);
+  }
+  std::sort(results.begin(), results.end());
+  return results;
+}
+
+template <typename N, typename E>
+std::vector<N> Graph<N, E>::GetConnected(const N& src) {
+  if (!IsNode(src)) 
+    throw std::out_of_range("Cannot call Graph::GetConnected if src doesn't exist in the graph");
+
+  std::vector<N> results;
+  for (auto edge : edges) {
+    shared_ptr<N> source = edge->source_.lock();
+    shared_ptr<N> destination = edge->destination_.lock();
+    if (src == *source)
+      results.push_back(*destination);
+  }
+  std::sort(results.begin(), results.end());
+  return results;
+}
+
+template <typename N, typename E>
+std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) {
+  if (!IsNode(src) || !IsNode(dst)) {
+    throw std::runtime_error("Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+  }
+
+  std::vector<E> results;
+  for (auto edge : edges) {
+    shared_ptr<N> source = edge->source_.lock();
+    shared_ptr<N> destination = edge->destination_.lock();
+    if (src == *source && dst == *destination)
+      results.push_back(edge->weight_);
+  }
+  std::sort(results.begin(), results.end());
+  return results;
+}
+
+template <typename N, typename E>
+bool Graph<N, E>::erase(const N& src, const N& dst, const E& w) {
+  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+    auto edge = *edgeItr;
+    shared_ptr<N> source = edge->source_.lock();
+    shared_ptr<N> destination = edge->destination_.lock();
+    if (src == *source && dst == *destination && w == edge->weight_) {
+      edges.erase(edgeItr);
+      return true;
+    }
+  }
+  return false;
+}
+
 // ----------------------- Helper Functions ----------------------------
 
 template <typename N, typename E>

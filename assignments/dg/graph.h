@@ -59,8 +59,13 @@ class Graph {
   bool DeleteNode(const N&);
   bool Replace(const N&, const N&);
   void MergeReplace(const N&, const N&);
+  void Clear();
   bool IsNode(const N&) const;
-
+  bool IsConnected(const N&, const N&);
+  std::vector<N> GetNodes();
+  std::vector<N> GetConnected(const N&); 
+  std::vector<E> GetWeights(const N&, const N&);
+  bool erase(const N&, const N&, const E&);
   bool InsertEdge(const N&, const N&, const E&);
 
   // ----------------------- Friends ----------------------------
