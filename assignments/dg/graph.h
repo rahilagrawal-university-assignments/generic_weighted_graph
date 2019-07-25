@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <stdexcept>
@@ -14,8 +15,102 @@ using std::weak_ptr;
 
 template <typename N, typename E>
 class Graph {
+
+ private:
+  struct Edge {
+    Edge(shared_ptr<N> source, shared_ptr<N> destination, const E& weight)
+      : source_{source}, destination_{destination}, weight_{weight} {}
+    weak_ptr<N> source_;
+    weak_ptr<N> destination_;
+    E weight_;
+  };
+  std::vector<shared_ptr<Edge>> getOutEdges(const N& node) const {
+    std::vector<shared_ptr<Edge>> nodeEdges;
+    for (auto edge : edges) {
+      shared_ptr<N> source = edge->source_.lock();
+      if (*source == node) {
+        nodeEdges.push_back(edge);
+      }
+    }
+
+    return nodeEdges;
+  }
+
+  std::vector<shared_ptr<Edge>> getInEdges(const N& node) const {
+    std::vector<shared_ptr<Edge>> nodeEdges;
+    for (auto edge : edges) {
+      shared_ptr<N> destination = edge->destination_.lock();
+      if (*destination == node) {
+        nodeEdges.push_back(edge);
+      }
+    }
+
+    return nodeEdges;
+  }
+
+  std::vector<shared_ptr<N>> nodes;
+  std::vector<shared_ptr<Edge>> edges;
+
  public:
-  class const_iterator {};
+  class Iterator {
+   public:
+    using iterator_category = std::bidirectional_iterator_tag;
+    using value_type = std::tuple<N, N, E>;
+    using reference = std::tuple<const N&, const N&, const E&>;
+    using pointer = std::tuple<N, N, E>*;
+    using difference_type = int;
+
+    reference operator*() const {
+      shared_ptr<Edge> edge = *edge_itr_;
+      shared_ptr<N> source = edge->source_.lock();
+      shared_ptr<N> destination = edge->destination_.lock();
+      return {*source, *destination, edge->weight_};
+    }
+    Iterator operator++() {
+      if (edge_itr_ != end_sentinel_) {
+        ++edge_itr_;
+      }
+      return *this;
+    }
+    Iterator operator++(int) {
+      auto copy{*this};
+      ++(*this);
+      return copy;
+    }
+    Iterator operator--() {
+      if (edge_itr_ != begin_sentinel_) {
+        --edge_itr_;
+      }
+      return *this;
+    }
+    Iterator operator--(int) {
+      auto copy{*this};
+      --(*this);
+      return copy;
+    }
+
+    friend bool operator==(const Iterator& lhs, const Iterator& rhs) {
+      return lhs.edge_itr_ == rhs.edge_itr_;
+    }
+
+    friend bool operator!=(const Iterator& lhs, const Iterator& rhs) { return !(lhs == rhs); }
+
+   private:
+    typename std::vector<shared_ptr<Edge>>::iterator edge_itr_;
+    typename std::vector<shared_ptr<Edge>>::iterator begin_sentinel_;
+    typename std::vector<shared_ptr<Edge>>::iterator end_sentinel_;
+    explicit Iterator(const decltype(edge_itr_)& edge_itr,
+                      const decltype(begin_sentinel_)& begin_sentinel,
+                      const decltype(end_sentinel_)& end_sentinel)
+      : edge_itr_{edge_itr}, begin_sentinel_{begin_sentinel}, end_sentinel_{end_sentinel} {}
+
+    friend class Graph;
+  };
+
+  Iterator cbegin() const { return {edges.cbegin(), edges.cend(), edges.cend()}; }
+  Iterator cend() const { return {edges.cend(), edges.cend(), edges.cend()}; }
+  Iterator begin() { return cbegin(); }
+  Iterator end() { return cend(); }
 
   // ----------------------- Constructors ----------------------------
 
@@ -63,7 +158,7 @@ class Graph {
   bool IsNode(const N&) const;
   bool IsConnected(const N&, const N&);
   std::vector<N> GetNodes();
-  std::vector<N> GetConnected(const N&); 
+  std::vector<N> GetConnected(const N&);
   std::vector<E> GetWeights(const N&, const N&);
   bool erase(const N&, const N&, const E&);
   bool InsertEdge(const N&, const N&, const E&);
@@ -148,42 +243,6 @@ class Graph {
 
     return os;
   }
-
- private:
-  struct Edge {
-    Edge(shared_ptr<N> source, shared_ptr<N> destination, const E& weight)
-      : source_{source}, destination_{destination}, weight_{weight} {}
-    weak_ptr<N> source_;
-    weak_ptr<N> destination_;
-    E weight_;
-  };
-
-  std::vector<shared_ptr<Edge>> getOutEdges(const N& node) const {
-    std::vector<shared_ptr<Edge>> nodeEdges;
-    for (auto edge : edges) {
-      shared_ptr<N> source = edge->source_.lock();
-      if (*source == node) {
-        nodeEdges.push_back(edge);
-      }
-    }
-
-    return nodeEdges;
-  }
-
-  std::vector<shared_ptr<Edge>> getInEdges(const N& node) const {
-    std::vector<shared_ptr<Edge>> nodeEdges;
-    for (auto edge : edges) {
-      shared_ptr<N> destination = edge->destination_.lock();
-      if (*destination == node) {
-        nodeEdges.push_back(edge);
-      }
-    }
-
-    return nodeEdges;
-  }
-
-  std::vector<shared_ptr<N>> nodes;
-  std::vector<shared_ptr<Edge>> edges;
 };
 #include "assignments/dg/graph.tpp"
 

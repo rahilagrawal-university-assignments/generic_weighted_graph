@@ -24,16 +24,9 @@ int main() {
 
   std::cout << g << '\n';
 
-  // gdwg::Graph<std::string, int> g2{g};
-
-  // std::cout << g2 << "\n";
-
-  // This is a structured binding.
-  // https://en.cppreference.com/w/cpp/language/structured_binding
-  // It allows you to unpack your tuple.
-  // for (const auto& [from, to, weight] : g) {
-  //   std::cout << from << " -> " << to << " (weight " << weight << ")\n";
-  // }
+  for (const auto& [from, to, weight] : g) {
+    std::cout << from << " -> " << to << " (weight " << weight << ")\n";
+  }
 
   std::vector<int> vec{1, 2, 3, 4, 5};
 
@@ -63,11 +56,12 @@ int main() {
   c.InsertNode('B');
   c.InsertNode('C');
   c.InsertNode('D');
-  c.InsertEdge('A', 'B', 1);
+  c.InsertEdge('A', 'A', 1);
   c.InsertEdge('A', 'C', 2);
   c.InsertEdge('A', 'D', 3);
   std::cout << c;
   c.MergeReplace('A', 'B');
+  std::cout << "--------------------";
   std::cout << c;
 
   c.Clear();
@@ -79,7 +73,7 @@ int main() {
   c.InsertEdge('A', 'B', 1);
   c.InsertEdge('A', 'C', 2);
   c.InsertEdge('A', 'D', 3);
-  std::cout << c;  
+  std::cout << c;
   std::cout << c.IsConnected('A', 'B');
   std::cout << c.IsConnected('B', 'B') << "\n";
 
@@ -87,5 +81,5 @@ int main() {
   std::cout << c.GetConnected('A').size() << "\n";
 
   c.erase('A', 'B', 1);
-  std::cout << c << "\n";  
+  std::cout << c << "\n";
 }

@@ -146,7 +146,15 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
 
-    if (oldData == *source) {
+    if (oldData == *source && oldData == *destination) {
+      // Delete the edge
+      edgeItr = edges.erase(edgeItr);
+      edgeItr--;
+      // Add Edge if not already there
+      InsertEdge(newData, newData, edge->weight_);
+    }
+
+    else if (oldData == *source) {
       // Delete the edge
       edgeItr = edges.erase(edgeItr);
       edgeItr--;
@@ -154,7 +162,7 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
       InsertEdge(newData, *destination, edge->weight_);
     }
 
-    if (oldData == *destination) {
+    else if (oldData == *destination) {
       // Delete the edge
       edgeItr = edges.erase(edgeItr);
       edgeItr--;
@@ -183,7 +191,8 @@ void Graph<N, E>::Clear() {
 template <typename N, typename E>
 bool Graph<N, E>::IsConnected(const N& src, const N& dst) {
   if (!IsNode(src) || !IsNode(dst)) {
-    throw std::runtime_error("Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    throw std::runtime_error(
+        "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
   }
 
   for (auto edge : edges) {
@@ -207,7 +216,7 @@ std::vector<N> Graph<N, E>::GetNodes() {
 
 template <typename N, typename E>
 std::vector<N> Graph<N, E>::GetConnected(const N& src) {
-  if (!IsNode(src)) 
+  if (!IsNode(src))
     throw std::out_of_range("Cannot call Graph::GetConnected if src doesn't exist in the graph");
 
   std::vector<N> results;
@@ -224,7 +233,8 @@ std::vector<N> Graph<N, E>::GetConnected(const N& src) {
 template <typename N, typename E>
 std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) {
   if (!IsNode(src) || !IsNode(dst)) {
-    throw std::runtime_error("Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    throw std::runtime_error(
+        "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
   }
 
   std::vector<E> results;
