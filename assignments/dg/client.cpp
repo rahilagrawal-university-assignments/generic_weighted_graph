@@ -31,7 +31,6 @@ int main() {
   }
 
   std::vector<int> vec{1, 2, 3, 4, 5};
-
   gdwg::Graph<int, int> g2{vec.begin(), vec.end()};
 
   std::cout << g2 << '\n';
@@ -83,11 +82,20 @@ int main() {
   std::cout << c.GetNodes().size() << "\n";
   std::cout << c.GetConnected('A').size() << "\n";
 
-  // c.erase('A', 'B', 1);
-  // std::cout << c << "\n";
+  auto it = c.find('A', 'E', 1);
+  std::cout << c << "\n";
+  std::cout << (c.erase(it) == c.cend()) << "\n";
 
-  auto it = c.find('A', 'B', 1);
-  std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " << std::get<2>(*it) << "\n";
-  it++;
-  std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " << std::get<2>(*it) << "\n";
+  for (auto it3 = c.cbegin(); it3 != c.cend(); it3++) {
+    std::cout << std::get<0>(*it3) << " -> " << std::get<1>(*it3) << " - " << std::get<2>(*it3)
+              << "\n";
+  }
+
+  for (auto it3 = c.crbegin(); it3 != c.crend(); it3++) {
+    std::cout << std::get<0>(*it3) << " -> " << std::get<1>(*it3) << " - " << std::get<2>(*it3)
+              << "\n";
+  }
+  // std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " << std::get<2>(*it) <<
+  // "\n"; it++; std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " <<
+  // std::get<2>(*it) << "\n";
 }

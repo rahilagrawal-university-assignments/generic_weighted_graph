@@ -97,7 +97,6 @@ bool Graph<N, E>::DeleteNode(const N& val) {
       nodes.erase(nodeItr);
 
       // Remove its edges
-
       for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
         auto edge = *edgeItr;
         shared_ptr<N> source = edge->source_.lock();
@@ -141,7 +140,7 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   }
 
   // Change the edges
-  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); ) {
+  for (auto edgeItr = edges.begin(); edgeItr != edges.end();) {
     auto edge = *edgeItr;
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
@@ -149,24 +148,13 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
     if (oldData == *source && oldData == *destination) {
       // Delete the edge
       edgeItr = edges.erase(edgeItr);
-      // edgeItr--;
       // Add Edge if not already there
       InsertEdge(newData, newData, edge->weight_);
-    }
-
-    else if (oldData == *source) {
-      // Delete the edge
+    } else if (oldData == *source) {
       edgeItr = edges.erase(edgeItr);
-      // edgeItr--;
-      // Add Edge if not already there
       InsertEdge(newData, *destination, edge->weight_);
-    }
-
-    else if (oldData == *destination) {
-      // Delete the edge
+    } else if (oldData == *destination) {
       edgeItr = edges.erase(edgeItr);
-      // edgeItr--;
-      // Add Edge if not already there
       InsertEdge(*source, newData, edge->weight_);
     } else {
       edgeItr++;
@@ -176,8 +164,8 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   for (auto edge : edges) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
-    std::cout << *source << *destination << edge->weight_ << "\n"; 
-  }  
+    std::cout << *source << *destination << edge->weight_ << "\n";
+  }
   // Remove the oldData Node
   for (auto nodeItr = nodes.begin(); nodeItr != nodes.end(); nodeItr++) {
     auto node = *nodeItr;
@@ -276,6 +264,17 @@ typename Graph<N, E>::const_iterator Graph<N, E>::find(const N& src, const N& ds
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination && w == edge->weight_) {
+      return {edgeItr, edges.cbegin(), edges.cend()};
+    }
+  }
+  return {edges.cend(), edges.cbegin(), edges.cend()};
+}
+
+template <typename N, typename E>
+typename Graph<N, E>::const_iterator Graph<N, E>::erase(const_iterator it) {
+  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+    if (edgeItr == it.edge_itr_) {
+      edgeItr = edges.erase(edgeItr);
       return {edgeItr, edges.cbegin(), edges.cend()};
     }
   }
