@@ -22,6 +22,8 @@ int main() {
 
   g.InsertEdge("are", "you?", 3);
 
+  // const auto xyz{g};
+
   std::cout << g << '\n';
 
   for (const auto& [from, to, weight] : g) {
@@ -56,7 +58,7 @@ int main() {
   c.InsertNode('B');
   c.InsertNode('C');
   c.InsertNode('D');
-  c.InsertEdge('A', 'A', 1);
+  c.InsertEdge('A', 'B', 1);
   c.InsertEdge('A', 'C', 2);
   c.InsertEdge('A', 'D', 3);
   std::cout << c;
@@ -71,6 +73,7 @@ int main() {
   c.InsertNode('C');
   c.InsertNode('D');
   c.InsertEdge('A', 'B', 1);
+  c.InsertEdge('B', 'C', 10);
   c.InsertEdge('A', 'C', 2);
   c.InsertEdge('A', 'D', 3);
   std::cout << c;
@@ -80,6 +83,11 @@ int main() {
   std::cout << c.GetNodes().size() << "\n";
   std::cout << c.GetConnected('A').size() << "\n";
 
-  c.erase('A', 'B', 1);
-  std::cout << c << "\n";
+  // c.erase('A', 'B', 1);
+  // std::cout << c << "\n";
+
+  auto it = c.find('A', 'B', 1);
+  std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " << std::get<2>(*it) << "\n";
+  it++;
+  std::cout << std::get<0>(*it) << " -> " << std::get<1>(*it) << " - " << std::get<2>(*it) << "\n";
 }

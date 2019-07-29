@@ -8,6 +8,7 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
+#include <set>
 
 namespace gdwg {
 using std::shared_ptr;
@@ -24,20 +25,37 @@ class Graph {
     weak_ptr<N> destination_;
     E weight_;
   };
-  std::vector<shared_ptr<Edge>> getOutEdges(const N& node) const {
-    std::vector<shared_ptr<Edge>> nodeEdges;
+
+  struct sortEdges {
+    bool operator()(const shared_ptr<Edge>& edge1, const shared_ptr<Edge>& edge2) const {
+      shared_ptr<N> source1 = edge1->source_.lock();
+      shared_ptr<N> source2 = edge2->source_.lock();
+      shared_ptr<N> destination1 = edge1->destination_.lock();
+      shared_ptr<N> destination2 = edge2->destination_.lock();
+
+      if (*source1 == *source2) {
+        if (*destination1 == *destination2)
+          return edge1->weight_ < edge2->weight_;
+        return *destination1 < *destination2;
+      }
+      return *source1 < *source2;
+    }
+  };
+
+  std::set<shared_ptr<Edge>, sortEdges> getOutEdges(const N& node) const {
+    std::set<shared_ptr<Edge>, sortEdges> nodeEdges;
     for (auto edge : edges) {
       shared_ptr<N> source = edge->source_.lock();
       if (*source == node) {
-        nodeEdges.push_back(edge);
+        nodeEdges.insert(edge);
       }
     }
 
     return nodeEdges;
   }
 
-  std::vector<shared_ptr<Edge>> getInEdges(const N& node) const {
-    std::vector<shared_ptr<Edge>> nodeEdges;
+  std::set<shared_ptr<Edge>> getInEdges(const N& node) const {
+    std::set<shared_ptr<Edge>> nodeEdges;
     for (auto edge : edges) {
       shared_ptr<N> destination = edge->destination_.lock();
       if (*destination == node) {
@@ -49,10 +67,10 @@ class Graph {
   }
 
   std::vector<shared_ptr<N>> nodes;
-  std::vector<shared_ptr<Edge>> edges;
+  std::set<shared_ptr<Edge>, sortEdges> edges;
 
  public:
-  class Iterator {
+  class const_iterator {
    public:
     using iterator_category = std::bidirectional_iterator_tag;
     using value_type = std::tuple<N, N, E>;
@@ -66,40 +84,40 @@ class Graph {
       shared_ptr<N> destination = edge->destination_.lock();
       return {*source, *destination, edge->weight_};
     }
-    Iterator operator++() {
+    const_iterator operator++() {
       if (edge_itr_ != end_sentinel_) {
         ++edge_itr_;
       }
       return *this;
     }
-    Iterator operator++(int) {
+    const_iterator operator++(int) {
       auto copy{*this};
       ++(*this);
       return copy;
     }
-    Iterator operator--() {
+    const_iterator operator--() {
       if (edge_itr_ != begin_sentinel_) {
         --edge_itr_;
       }
       return *this;
     }
-    Iterator operator--(int) {
+    const_iterator operator--(int) {
       auto copy{*this};
       --(*this);
       return copy;
     }
 
-    friend bool operator==(const Iterator& lhs, const Iterator& rhs) {
+    friend bool operator==(const const_iterator& lhs, const const_iterator& rhs) {
       return lhs.edge_itr_ == rhs.edge_itr_;
     }
 
-    friend bool operator!=(const Iterator& lhs, const Iterator& rhs) { return !(lhs == rhs); }
+    friend bool operator!=(const const_iterator& lhs, const const_iterator& rhs) { return !(lhs == rhs); }
 
    private:
-    typename std::vector<shared_ptr<Edge>>::iterator edge_itr_;
-    typename std::vector<shared_ptr<Edge>>::iterator begin_sentinel_;
-    typename std::vector<shared_ptr<Edge>>::iterator end_sentinel_;
-    explicit Iterator(const decltype(edge_itr_)& edge_itr,
+    typename std::set<shared_ptr<Edge>>::const_iterator edge_itr_;
+    typename std::set<shared_ptr<Edge>>::const_iterator begin_sentinel_;
+    typename std::set<shared_ptr<Edge>>::const_iterator end_sentinel_;
+    const_iterator(const decltype(edge_itr_)& edge_itr,
                       const decltype(begin_sentinel_)& begin_sentinel,
                       const decltype(end_sentinel_)& end_sentinel)
       : edge_itr_{edge_itr}, begin_sentinel_{begin_sentinel}, end_sentinel_{end_sentinel} {}
@@ -107,10 +125,20 @@ class Graph {
     friend class Graph;
   };
 
-  Iterator cbegin() const { return {edges.cbegin(), edges.cend(), edges.cend()}; }
-  Iterator cend() const { return {edges.cend(), edges.cend(), edges.cend()}; }
-  Iterator begin() { return cbegin(); }
-  Iterator end() { return cend(); }
+  
+
+  const_iterator cbegin() const {
+    return {edges.cbegin(), edges.cbegin(), edges.cend()}; 
+  }
+  const_iterator cend() const {
+    return {edges.cend(), edges.cbegin(), edges.cend()}; 
+  }
+  const_iterator begin() { 
+    return {edges.cbegin(), edges.cbegin(), edges.cend()}; 
+  }
+  const_iterator end() { 
+    return  {edges.cend(), edges.cbegin(), edges.cend()}; 
+  }
 
   // ----------------------- Constructors ----------------------------
 
@@ -162,6 +190,7 @@ class Graph {
   std::vector<E> GetWeights(const N&, const N&);
   bool erase(const N&, const N&, const E&);
   bool InsertEdge(const N&, const N&, const E&);
+  const_iterator find(const N&, const N&, const E&);
 
   // ----------------------- Friends ----------------------------
 
@@ -213,7 +242,6 @@ class Graph {
   friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
 
     std::vector<shared_ptr<N>> nodes = g.nodes;
-    std::vector<shared_ptr<Edge>> edges = g.edges;
 
     std::sort(nodes.begin(), nodes.end(),
               [](const shared_ptr<N>& a, const shared_ptr<N>& b) -> bool { return *a < *b; });
@@ -221,18 +249,8 @@ class Graph {
     for (auto node : nodes) {
       os << *node << " (\n";
 
-      std::vector<shared_ptr<Edge>> edges = g.getOutEdges(*node);
+      std::set<shared_ptr<Edge>, sortEdges> edges = g.getOutEdges(*node);
 
-      std::sort(edges.begin(), edges.end(),
-                [](const shared_ptr<Edge>& edge1, const shared_ptr<Edge>& edge2) -> bool {
-                  shared_ptr<N> destination1 = edge1->destination_.lock();
-                  shared_ptr<N> destination2 = edge2->destination_.lock();
-
-                  if (*destination1 == *destination2) {
-                    return edge1->weight_ < edge2->weight_;
-                  }
-                  return *destination1 < *destination2;
-                });
       for (auto edge : edges) {
         shared_ptr<N> destination1 = edge->destination_.lock();
         os << "\t" << *destination1 << " | " << edge->weight_ << std::endl;
