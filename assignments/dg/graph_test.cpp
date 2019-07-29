@@ -346,14 +346,117 @@ SCENARIO("Testing cbegin") {
 // ----------------------- Operations ------------------------------
 
 // Copy Assignment
+SCENARIO("Create a Graph by copy assigning another graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("Graph is created using the copy assignment") {
+      gdwg::Graph<std::string, int> newG = g;
+      THEN("The 2 graphs are equal") { REQUIRE(g == newG); }
+    }
+  }
+}
 
-// Default Move Assignment
+// Move Assignment
+SCENARIO("Create a Graph by move assigning another graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("Graph is created using the move assignment") {
+      gdwg::Graph<std::string, int> newG = std::move(g);
+      THEN("The new graph has 3 nodes and 2 edges") {
+        REQUIRE(newG.IsNode("a"));
+        REQUIRE(newG.IsNode("b"));
+        REQUIRE(newG.IsNode("c"));
+        REQUIRE(newG.isEdge("b", "c", 5));
+        REQUIRE(newG.isEdge("a", "c", 1));
+      }
+      THEN("The old graph has 0 nodes and 0 edges") {
+        REQUIRE(g.GetNodes().size() == 0);
+        REQUIRE(g.cbegin() == g.cend());
+      }
+    }
+  }
+}
 
 // ----------------------- Methods ---------------------------------
 
 // DeleteNode
+SCENARIO("Deleting a Node from a Graph") {
+  GIVEN("A graph with 4 edges and 3 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("Node A is Deleted") {
+      bool result = g.DeleteNode("A");
+      THEN("A is actually deleted") { REQUIRE(result); }
+      THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
+      }
+    }
+    WHEN("Node E is Deleted") {
+      bool result = g.DeleteNode("E");
+      THEN("E is NOT actually deleted") { REQUIRE(!result); }
+      THEN("There are only 4 nodes still") { REQUIRE(g.GetNodes().size() == 4); }
+    }
+  }
+}
 
 // Replace
+SCENARIO("Replacing a Node in a Graph") {
+  GIVEN("A graph with 4 edges and 3 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("Node A is replaced with E") {
+      bool replaced = g.Replace("A", "E");
+      THEN("The node is actually replaced") { REQUIRE(replaced); }
+      THEN("There are only 4 nodes still") { REQUIRE(g.GetNodes().size() == 4); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
+      }
+      THEN("E is a node") { REQUIRE(g.IsNode("E")); }
+      THEN("There is an edge from E->B(1) and D->E(4)") {
+        REQUIRE(g.isEdge("E", "B", 1));
+        REQUIRE(g.isEdge("D", "E", 4));
+      }
+    }
+    WHEN("Node A is replaced with B") {
+      bool replaced = g.Replace("A", "B");
+      THEN("The node is not actually replaced") { REQUIRE(!replaced); }
+      THEN("There are still 4 nodes") { REQUIRE(g.GetNodes().size() == 4); }
+      THEN("B is a node") { REQUIRE(g.IsNode("B")); }
+      THEN("A is a node") { REQUIRE(g.IsNode("A")); }
+      THEN("There is an edge from A->B(1) and D->A(4)") {
+        REQUIRE(g.isEdge("A", "B", 1));
+        REQUIRE(g.isEdge("D", "A", 4));
+      }
+    }
+    WHEN("Node F is rpelaced with B") {
+      REQUIRE_THROWS_WITH(g.Replace("F", "B"),
+                          "Cannot call Graph::Replace on a node that doesn't exist");
+    }
+  }
+}
 
 // MergeReplace
 
