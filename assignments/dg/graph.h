@@ -214,31 +214,31 @@ class Graph {
   // ----------------------- Operations ----------------------------
 
   // Copy Assignment
-  Graph& operator=(const Graph&);
+  Graph& operator=(const Graph&) noexcept;
 
   // Default Move Assignment
   Graph& operator=(Graph&&) = default;
 
   // Helper Functions
-  shared_ptr<N> getNode(const N&) const;
-  bool isEdge(const N&, const N&, const E&) const;
+  shared_ptr<N> getNode(const N&) const noexcept;
+  bool isEdge(const N&, const N&, const E&) const noexcept;
 
   // ----------------------- Methods ----------------------------
 
-  bool InsertNode(const N&);
-  bool DeleteNode(const N&);
+  bool InsertNode(const N&) noexcept;
+  bool DeleteNode(const N&) noexcept;
   bool Replace(const N&, const N&);
   void MergeReplace(const N&, const N&);
-  void Clear();
-  bool IsNode(const N&) const;
-  bool IsConnected(const N&, const N&);
-  std::vector<N> GetNodes();
-  std::vector<N> GetConnected(const N&);
-  std::vector<E> GetWeights(const N&, const N&);
-  bool erase(const N&, const N&, const E&);
+  void Clear() noexcept;
+  bool IsNode(const N&) const noexcept;
+  bool IsConnected(const N&, const N&) const;
+  std::vector<N> GetNodes() const noexcept;
+  std::vector<N> GetConnected(const N&) const;
+  std::vector<E> GetWeights(const N&, const N&) const;
+  bool erase(const N&, const N&, const E&) noexcept;
   bool InsertEdge(const N&, const N&, const E&);
-  const_iterator find(const N&, const N&, const E&);
-  const_iterator erase(const_iterator it);
+  const_iterator find(const N&, const N&, const E&) const noexcept;
+  const_iterator erase(const_iterator it) noexcept;
 
   // ----------------------- Friends ----------------------------
 
