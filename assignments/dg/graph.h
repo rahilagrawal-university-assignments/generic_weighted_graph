@@ -287,6 +287,7 @@ class Graph {
   // Inequality Operator Overload
   friend bool operator!=(const Graph& g1, const Graph& g2) { return !(g1 == g2); }
 
+  // OutStream Operator Overload
   friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
 
     std::vector<shared_ptr<N>> nodes = g.nodes;
