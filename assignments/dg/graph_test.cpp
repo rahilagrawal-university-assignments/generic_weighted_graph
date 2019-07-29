@@ -18,10 +18,8 @@ SCENARIO("Testing Default Constructor") {
   GIVEN("A graph with default constructor") {
     gdwg::Graph<std::string, int> g;
     WHEN("size of graph is checked") {
-      std::vector<std::string> nodes = g.GetNodes(); 
-      THEN("size of graph should 0") {
-        REQUIRE(nodes.size() == 0);
-      }
+      std::vector<std::string> nodes = g.GetNodes();
+      THEN("size of graph should 0") { REQUIRE(nodes.size() == 0); }
     }
   }
 }
@@ -33,7 +31,7 @@ SCENARIO("Testing InsertNode") {
     WHEN("nodes are added") {
       g.InsertNode("a");
       g.InsertNode("b");
-      std::vector<std::string> nodes = g.GetNodes(); 
+      std::vector<std::string> nodes = g.GetNodes();
       THEN("graph should contain 2 nodes") {
         REQUIRE(nodes.size() == 2);
         REQUIRE(nodes[0] == "a");
@@ -52,9 +50,7 @@ SCENARIO("Testing isEdge - has the edge") {
     g.InsertEdge("a", "b", 5);
     WHEN("IisEdge is called") {
       bool result = g.isEdge("a", "b", 5);
-      THEN("result should be true") {
-        REQUIRE(result == true);
-      }
+      THEN("result should be true") { REQUIRE(result == true); }
     }
   }
 }
@@ -67,9 +63,7 @@ SCENARIO("Testing isEdge - does not have the edge") {
     g.InsertEdge("a", "b", 5);
     WHEN("IisEdge is called with different edge") {
       bool result = g.isEdge("a", "b", 10);
-      THEN("result should be false") {
-        REQUIRE(result == false);
-      }
+      THEN("result should be false") { REQUIRE(result == false); }
     }
   }
 }
@@ -95,7 +89,9 @@ SCENARIO("Testing InsertEdge - exception") {
     g.InsertNode("a");
     g.InsertNode("b");
     WHEN("edge is added") {
-      REQUIRE_THROWS_WITH(g.InsertEdge("d", "b", 5), "Cannot call Graph::InsertEdge when either src or dst node does not exist");
+      REQUIRE_THROWS_WITH(
+          g.InsertEdge("d", "b", 5),
+          "Cannot call Graph::InsertEdge when either src or dst node does not exist");
     }
   }
 }
@@ -148,9 +144,7 @@ SCENARIO("Testing == that is true") {
     h.InsertNode("b");
     WHEN("equality is tested") {
       bool result = (g == h);
-      THEN("result should be true") {
-        REQUIRE(result == true);
-      }
+      THEN("result should be true") { REQUIRE(result == true); }
     }
   }
 }
@@ -165,9 +159,7 @@ SCENARIO("Testing == that is false") {
     g.InsertNode("b");
     WHEN("equality is tested") {
       bool result = (g == h);
-      THEN("result should be false") {
-        REQUIRE(result == false);
-      }
+      THEN("result should be false") { REQUIRE(result == false); }
     }
   }
 }
@@ -183,9 +175,7 @@ SCENARIO("Testing != that is false") {
     h.InsertNode("b");
     WHEN("inequality is tested") {
       bool result = (g != h);
-      THEN("result should be false") {
-        REQUIRE(result == false);
-      }
+      THEN("result should be false") { REQUIRE(result == false); }
     }
   }
 }
@@ -200,9 +190,7 @@ SCENARIO("Testing != that is true") {
     g.InsertNode("b");
     WHEN("inequality is tested") {
       bool result = (g != h);
-      THEN("result should be true") {
-        REQUIRE(result == true);
-      }
+      THEN("result should be true") { REQUIRE(result == true); }
     }
   }
 }
@@ -270,10 +258,46 @@ SCENARIO("Create a Graph from the given initiliaser list of nodes") {
 }
 
 // Copy constructor
+SCENARIO("Create a Graph by copy constructing another graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("Graph is created using the copy constructor") {
+      gdwg::Graph<std::string, int> newG{g};
+      THEN("The 2 graphs are equal") { REQUIRE(g == newG); }
+    }
+  }
+}
 
 // Default Move Constructor
-
-// Default Destructor
+SCENARIO("Create a Graph by move constructing another graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("Graph is created using the move constructor") {
+      gdwg::Graph<std::string, int> newG{std::move(g)};
+      THEN("The new graph has 3 nodes and 2 edges") {
+        REQUIRE(newG.IsNode("a"));
+        REQUIRE(newG.IsNode("b"));
+        REQUIRE(newG.IsNode("c"));
+        REQUIRE(newG.isEdge("b", "c", 5));
+        REQUIRE(newG.isEdge("a", "c", 1));
+      }
+      THEN("The old graph has 0 nodes and 0 edges") {
+        REQUIRE(g.GetNodes().size() == 0);
+        REQUIRE(g.cbegin() == g.cend());
+      }
+    }
+  }
+}
 
 // ----------------------- Iterator Constructors -----------------------
 
@@ -300,9 +324,7 @@ SCENARIO("Testing cbegin") {
         REQUIRE(std::get<2>(*start) == 5);
       }
       start++;
-      THEN("start++ should now equal cend") {
-        REQUIRE(start == g.cend());
-      }
+      THEN("start++ should now equal cend") { REQUIRE(start == g.cend()); }
     }
   }
 }
