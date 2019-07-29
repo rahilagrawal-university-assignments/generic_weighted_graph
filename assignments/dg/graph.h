@@ -301,7 +301,7 @@ class Graph {
 
       for (auto edge : edges) {
         shared_ptr<N> destination1 = edge->destination_.lock();
-        os << "\t" << *destination1 << " | " << edge->weight_ << std::endl;
+        os << "  " << *destination1 << " | " << edge->weight_ << std::endl;
       }
 
       os << ")\n";
