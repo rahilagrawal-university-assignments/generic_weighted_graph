@@ -58,7 +58,7 @@ SCENARIO("Inserting a node into the graph") {
     }
     WHEN("duplicate nodes are added") {
       bool result1 = g.InsertNode("a");
-      bool result2 = g.InsertNode("b"); 
+      bool result2 = g.InsertNode("b");
       bool result3 = g.InsertNode("a");
       std::vector<std::string> nodes = g.GetNodes();
       THEN("duplicate node should not be added to the graph") {
@@ -190,7 +190,6 @@ SCENARIO("Checking if 2 graphs are not equal") {
     }
   }
 }
-
 
 // ----------------------- Constructors ----------------------------
 
@@ -344,9 +343,7 @@ SCENARIO("Calling cend iterator on a graph") {
         REQUIRE(std::get<2>(*end) == 5);
       }
       end--;
-      THEN("end-- should equal now equal the cbegin") {
-        REQUIRE(end == g.cbegin());
-      }
+      THEN("end-- should equal now equal the cbegin") { REQUIRE(end == g.cbegin()); }
     }
   }
 }
@@ -397,9 +394,7 @@ SCENARIO("Calling end iterator on a graph") {
         REQUIRE(std::get<2>(*end) == 5);
       }
       end--;
-      THEN("end-- should equal now equal the begin") {
-        REQUIRE(end == g.begin());
-      }
+      THEN("end-- should equal now equal the begin") { REQUIRE(end == g.begin()); }
     }
   }
 }
@@ -450,9 +445,7 @@ SCENARIO("Calling crend iterator on a graph") {
         REQUIRE(std::get<2>(*end) == 1);
       }
       end--;
-      THEN("end should equal now equal the crbegin") {
-        REQUIRE(end == g.crbegin());
-      }
+      THEN("end should equal now equal the crbegin") { REQUIRE(end == g.crbegin()); }
     }
   }
 }
@@ -503,9 +496,7 @@ SCENARIO("Calling rend iterator on a graph") {
         REQUIRE(std::get<2>(*end) == 1);
       }
       end--;
-      THEN("end should equal now equal the rbegin") {
-        REQUIRE(end == g.rbegin());
-      }
+      THEN("end should equal now equal the rbegin") { REQUIRE(end == g.rbegin()); }
     }
   }
 }
@@ -846,9 +837,7 @@ SCENARIO("Finding a particular edge in the graph") {
 
     WHEN("find is called for a edge that does not exist") {
       auto it = g.find("a", "c", 2);
-      THEN("iterator should equal cend") {
-        REQUIRE(it == g.cend());
-      }
+      THEN("iterator should equal cend") { REQUIRE(it == g.cend()); }
     }
   }
 }
@@ -875,15 +864,43 @@ SCENARIO("Erasing an edge using an iterator in the graph") {
 
     WHEN("erase is called for a edge that does not exist") {
       auto it = g.find("a", "b", 2);
-      it = g.erase(it);      
-      THEN("iterator should equal cend") {
-        REQUIRE(it == g.cend());
-      }
+      it = g.erase(it);
+      THEN("iterator should equal cend") { REQUIRE(it == g.cend()); }
     }
   }
 }
 
-
 // ----------------------- Friends ---------------------------------
 
 // Outstream Operator Overload
+SCENARIO("Print a graph using the output stream") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("B", "D", 5), std::make_tuple("B", "C", -1), std::make_tuple("C", "D", 4),
+        std::make_tuple("A", "B", 1)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("It is printed using the output stream") {
+      std::stringstream v;
+      v << g;
+      THEN("Then it is printed in the following format:\n[node1][1 space](\n[2 "
+           "spaces][node1_connected_node1][1 space][pipe][1 space][weight]\n[2 "
+           "spaces][node1_connected_node2][1 space][pipe][1 space][weight]\n[etc "
+           "etc]\n)\n[node2][1 space](\n[2 spaces][node2_connected_node1][1 space][pipe][1 "
+           "space][weight]\n[2 spaces][node2_connected_node2][1 space][pipe][1 "
+           "space][weight]\n[etc etc]\n)\n[node3][1 space](\n[2 spaces][node3_connected_node1][1 "
+           "space][pipe][1 space][weight]\n[2 spaces][node3_connected_node2][1 space][pipe][1 "
+           "space][weight]\n[etc etc]\n)\n[etc etc]\n"
+           "sorted first by node, then by connected node and then by weight") {
+        REQUIRE(v.str() == "A (\n  B | 1\n)\nB (\n  C | -1\n  D | 5\n)\nC (\n  D | 4\n)\nD (\n)\n");
+      }
+    }
+  }
+  GIVEN("An empty graph is created") {
+    gdwg::Graph<std::string, int> g;
+    WHEN("It is printed using the output stream") {
+      std::stringstream v;
+      v << g;
+      THEN("Then the output is empty") { REQUIRE(v.str() == ""); }
+    }
+  }
+}
