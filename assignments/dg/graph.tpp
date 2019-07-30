@@ -164,7 +164,6 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   for (auto edge : edges) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
-    std::cout << *source << *destination << edge->weight_ << "\n";
   }
   // Remove the oldData Node
   for (auto nodeItr = nodes.begin(); nodeItr != nodes.end(); nodeItr++) {

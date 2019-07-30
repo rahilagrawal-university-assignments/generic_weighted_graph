@@ -24,6 +24,22 @@ SCENARIO("Testing Default Constructor") {
   }
 }
 
+// IsNode
+SCENARIO("Check the membership of a Node using IsNode") {
+  GIVEN("A graph with default constructor") {
+    gdwg::Graph<std::string, int> g;
+    WHEN("nodes are added") {
+      g.InsertNode("a");
+      g.InsertNode("b");
+      THEN("IsNode a and IsNode b but not IsNode c") {
+        REQUIRE(g.IsNode("a"));
+        REQUIRE(g.IsNode("b"));
+        REQUIRE(!g.IsNode("c"));
+      }
+    }
+  }
+}
+
 // InsertNode
 SCENARIO("Testing InsertNode") {
   GIVEN("A graph with default constructor") {
@@ -391,7 +407,7 @@ SCENARIO("Create a Graph by move assigning another graph") {
 
 // DeleteNode
 SCENARIO("Deleting a Node from a Graph") {
-  GIVEN("A graph with 4 edges and 3 nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
     std::vector<std::tuple<std::string, std::string, int>> vecTuples{
         std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
         std::make_tuple("D", "A", 4)};
@@ -418,7 +434,7 @@ SCENARIO("Deleting a Node from a Graph") {
 
 // Replace
 SCENARIO("Replacing a Node in a Graph") {
-  GIVEN("A graph with 4 edges and 3 nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
     std::vector<std::tuple<std::string, std::string, int>> vecTuples{
         std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
         std::make_tuple("D", "A", 4)};
@@ -459,10 +475,92 @@ SCENARIO("Replacing a Node in a Graph") {
 }
 
 // MergeReplace
+SCENARIO("Merge Replacing a Node in a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("Node A is replaced with B") {
+      g.MergeReplace("A", "B");
+      THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
+      }
+      THEN("There is an edge from B->B(1) and D->A(4)") {
+        REQUIRE(g.isEdge("B", "B", 1));
+        REQUIRE(g.isEdge("D", "B", 4));
+      }
+    }
+    WHEN("Node A is replaced with B") {
+      g.MergeReplace("A", "B");
+      THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
+      }
+      THEN("There is an edge from B->B(1) and D->A(4)") {
+        REQUIRE(g.isEdge("B", "B", 1));
+        REQUIRE(g.isEdge("D", "B", 4));
+      }
+    }
+    WHEN("There is an edge from A->A(1) and A->B(1)") {
+      g.InsertEdge("A", "A", 1);
+      AND_WHEN("Node A is replaced by Node B") {
+        g.MergeReplace("A", "B");
+        THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+        THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+        THEN("There are no edges that start or end in A") {
+          for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+            REQUIRE(std::get<0>(*edge) != "A");
+            REQUIRE(std::get<1>(*edge) != "A");
+          }
+        }
+        THEN("There is an edge from B->B(1) and D->A(4)") {
+          REQUIRE(g.isEdge("B", "B", 1));
+          REQUIRE(g.isEdge("D", "B", 4));
+        }
+        THEN("There is only one edge from B->B(1) (duplicate not added)") {
+          REQUIRE(g.GetWeights("B", "B").size() == 1);
+        }
+      }
+    }
+    WHEN("Node E is rpelaced with B") {
+      REQUIRE_THROWS_WITH(
+          g.MergeReplace("E", "B"),
+          "Cannot call Graph::MergeReplace on old or new data if they don't exist in the graph");
+    }
+    WHEN("Node B is rpelaced with E") {
+      REQUIRE_THROWS_WITH(
+          g.MergeReplace("B", "E"),
+          "Cannot call Graph::MergeReplace on old or new data if they don't exist in the graph");
+    }
+  }
+}
 
 // Clear
-
-// IsNode
+SCENARIO("Clearing a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The graph is cleared") {
+      g.Clear();
+      THEN("The graph is same as a new graph with no edges and no nodes") {
+        gdwg::Graph<std::string, int> clearG;
+        REQUIRE(g == clearG);
+      }
+    }
+  }
+}
 
 // IsConnected
 
