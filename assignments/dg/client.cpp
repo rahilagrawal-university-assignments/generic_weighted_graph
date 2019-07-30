@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <tuple>
+#include <vector>
 
 #include "assignments/dg/graph.h"
 

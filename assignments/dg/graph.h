@@ -8,6 +8,7 @@
 #include <memory>
 #include <set>
 #include <stdexcept>
+#include <tuple>
 #include <vector>
 
 namespace gdwg {
@@ -289,7 +290,6 @@ class Graph {
 
   // OutStream Operator Overload
   friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
-
     std::vector<shared_ptr<N>> nodes = g.nodes;
 
     std::sort(nodes.begin(), nodes.end(),

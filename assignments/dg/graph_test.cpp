@@ -7,6 +7,10 @@
    and why you think your tests are that thorough.
 
 */
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "assignments/dg/graph.h"
 #include "catch.h"
