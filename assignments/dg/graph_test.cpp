@@ -616,6 +616,33 @@ SCENARIO("Getting nodes connected to a given node") {
 }
 
 // GetWeights
+SCENARIO("Getting weights for edges between 2 given nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("A", "B", -1), std::make_tuple("A", "B", 5),
+        std::make_tuple("A", "B", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The weights of edges from A->B are received") {
+      auto weights = g.GetWeights("A", "B");
+      THEN("There are 4 weights") { REQUIRE(weights.size() == 4); }
+      THEN("The weights are sorted") {
+        auto sortedWeights = weights;
+        std::sort(sortedWeights.begin(), sortedWeights.end());
+        REQUIRE(weights == sortedWeights);
+      }
+    }
+    WHEN("The weights from A to E are received") {
+      REQUIRE_THROWS_WITH(
+          g.GetWeights("A", "E"),
+          "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    }
+    WHEN("The weights from E to A are received") {
+      REQUIRE_THROWS_WITH(
+          g.GetWeights("E", "A"),
+          "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    }
+  }
+}
 
 // erase
 
