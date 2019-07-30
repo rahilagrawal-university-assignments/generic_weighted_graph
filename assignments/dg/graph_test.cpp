@@ -645,6 +645,26 @@ SCENARIO("Getting weights for edges between 2 given nodes") {
 }
 
 // erase
+SCENARIO("Erase an edge from the internal representation") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("A", "B", -1), std::make_tuple("A", "B", 5),
+        std::make_tuple("A", "B", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The edge A->B(1) is erased") {
+      auto erased = g.erase("A", "B", 1);
+      THEN("A->B(1) actually got deleted") { REQUIRE(erased); }
+      THEN("A->B(1) does not exist anymore") { REQUIRE(!g.isEdge("A", "B", 1)); }
+      THEN("A->B(-1) still exists") { REQUIRE(g.isEdge("A", "B", -1)); }
+      THEN("A->B(5) still exists") { REQUIRE(g.isEdge("A", "B", 5)); }
+      THEN("A->B(4) still exists") { REQUIRE(g.isEdge("A", "B", 4)); }
+    }
+    WHEN("The edge B->B(1) is erased") {
+      auto erased = g.erase("B", "B", 1);
+      THEN("B->B(1) did not delete because it does not exist") { REQUIRE(!erased); }
+    }
+  }
+}
 
 // Iterator find
 
