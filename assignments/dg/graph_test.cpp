@@ -24,6 +24,22 @@ SCENARIO("Create a Graph using the Default Constructor") {
   }
 }
 
+// IsNode
+SCENARIO("Check the membership of a Node using IsNode") {
+  GIVEN("A graph with default constructor") {
+    gdwg::Graph<std::string, int> g;
+    WHEN("nodes are added") {
+      g.InsertNode("a");
+      g.InsertNode("b");
+      THEN("IsNode a and IsNode b but not IsNode c") {
+        REQUIRE(g.IsNode("a"));
+        REQUIRE(g.IsNode("b"));
+        REQUIRE(!g.IsNode("c"));
+      }
+    }
+  }
+}
+
 // InsertNode
 SCENARIO("Inserting a node into the graph") {
   GIVEN("A graph with default constructor") {
@@ -372,7 +388,7 @@ SCENARIO("Create a Graph by move assigning another graph") {
 
 // DeleteNode
 SCENARIO("Deleting a Node from a Graph") {
-  GIVEN("A graph with 4 edges and 3 nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
     std::vector<std::tuple<std::string, std::string, int>> vecTuples{
         std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
         std::make_tuple("D", "A", 4)};
@@ -399,7 +415,7 @@ SCENARIO("Deleting a Node from a Graph") {
 
 // Replace
 SCENARIO("Replacing a Node in a Graph") {
-  GIVEN("A graph with 4 edges and 3 nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
     std::vector<std::tuple<std::string, std::string, int>> vecTuples{
         std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
         std::make_tuple("D", "A", 4)};
@@ -440,124 +456,180 @@ SCENARIO("Replacing a Node in a Graph") {
 }
 
 // MergeReplace
-
-// Clear
-SCENARIO("Clearing a Graph") {
-  GIVEN("A graph with 3 nodes and 2 edges") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertEdge("b", "c", 5);
-    g.InsertEdge("a", "c", 1);
-    WHEN("clear is called") {
-      g.Clear();
-      THEN("Graph should be empty") {
-        auto nodes = g.GetNodes();
-        REQUIRE(nodes.size() == 0);
-        REQUIRE(g.isEdge("b", "c", 5) == false);
-        REQUIRE(g.isEdge("a", "c", 1) == false);
+SCENARIO("Merge Replacing a Node in a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("Node A is replaced with B") {
+      g.MergeReplace("A", "B");
+      THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
       }
-
-      THEN("New nodes can still be added") {
-        bool result1 = g.InsertNode("d");
-        auto nodes = g.GetNodes();
-        REQUIRE(nodes.size() == 1);
-        REQUIRE(nodes[0] == "d");
-        REQUIRE(result1 == true);
+      THEN("There is an edge from B->B(1) and D->A(4)") {
+        REQUIRE(g.isEdge("B", "B", 1));
+        REQUIRE(g.isEdge("D", "B", 4));
       }
+    }
+    WHEN("Node A is replaced with B") {
+      g.MergeReplace("A", "B");
+      THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+      THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+      THEN("There are no edges that start or end in A") {
+        for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+          REQUIRE(std::get<0>(*edge) != "A");
+          REQUIRE(std::get<1>(*edge) != "A");
+        }
+      }
+      THEN("There is an edge from B->B(1) and D->A(4)") {
+        REQUIRE(g.isEdge("B", "B", 1));
+        REQUIRE(g.isEdge("D", "B", 4));
+      }
+    }
+    WHEN("There is an edge from A->A(1) and A->B(1)") {
+      g.InsertEdge("A", "A", 1);
+      AND_WHEN("Node A is replaced by Node B") {
+        g.MergeReplace("A", "B");
+        THEN("There are only 3 nodes now") { REQUIRE(g.GetNodes().size() == 3); }
+        THEN("A is not a node") { REQUIRE(!g.IsNode("A")); }
+        THEN("There are no edges that start or end in A") {
+          for (auto edge = g.cbegin(); edge != g.cend(); edge++) {
+            REQUIRE(std::get<0>(*edge) != "A");
+            REQUIRE(std::get<1>(*edge) != "A");
+          }
+        }
+        THEN("There is an edge from B->B(1) and D->A(4)") {
+          REQUIRE(g.isEdge("B", "B", 1));
+          REQUIRE(g.isEdge("D", "B", 4));
+        }
+        THEN("There is only one edge from B->B(1) (duplicate not added)") {
+          REQUIRE(g.GetWeights("B", "B").size() == 1);
+        }
+      }
+    }
+    WHEN("Node E is rpelaced with B") {
+      REQUIRE_THROWS_WITH(
+          g.MergeReplace("E", "B"),
+          "Cannot call Graph::MergeReplace on old or new data if they don't exist in the graph");
+    }
+    WHEN("Node B is rpelaced with E") {
+      REQUIRE_THROWS_WITH(
+          g.MergeReplace("B", "E"),
+          "Cannot call Graph::MergeReplace on old or new data if they don't exist in the graph");
     }
   }
 }
 
-// IsNode
-SCENARIO("Checking is there is a particular node in the graph") {
-  GIVEN("A graph with 3 nodes and 2 edges") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertEdge("b", "c", 5);
-    g.InsertEdge("a", "c", 1);
-    WHEN("IsNode is called") {
-      bool result1 = g.IsNode("a");
-      bool result2 = g.IsNode("d");
-      THEN("a should in the graph and d should not be in the graph") {
-        REQUIRE(result1 == true);
-        REQUIRE(result2 == false);
+// Clear
+SCENARIO("Clearing a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The graph is cleared") {
+      g.Clear();
+      THEN("The graph is same as a new graph with no edges and no nodes") {
+        gdwg::Graph<std::string, int> clearG;
+        REQUIRE(g == clearG);
+      }
+
+      THEN("New nodes should be able to be inserted") {
+        g.InsertNode("a");
+        g.InsertNode("b");
+        auto nodes = g.GetNodes();
+        REQUIRE(nodes.size() == 2);
+        REQUIRE(nodes[0] == "a");
+        REQUIRE(nodes[1] == "b");
       }
     }
   }
 }
 
 // IsConnected
-SCENARIO("Checking is there is a particular edge in the graph") {
-  GIVEN("A graph with 3 nodes and 2 edges") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertEdge("b", "c", 5);
-    g.InsertEdge("a", "c", 1);
-    WHEN("IsConnected is called") {
-      bool result1 = g.IsConnected("a", "c");
-      bool result2 = g.IsConnected("a", "b");
-      THEN("edge from a to c is true and edge from b to c is false") {
-        REQUIRE(result1 == true);
-        REQUIRE(result2 == false);
-      }
+SCENARIO("Checking connectivity of 2 nodes in a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The connectivity from A to B is Tested") {
+      bool connected = g.IsConnected("A", "B");
+      THEN("A and B are connected from A to B") { REQUIRE(connected); }
     }
-
-    WHEN("IsConnected is called on nodes that dont exist") {
-      REQUIRE_THROWS_WITH(g.IsConnected("d", "e"), "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    WHEN("The connectivity from B to A is Tested") {
+      bool connected = g.IsConnected("B", "A");
+      THEN("A and B are not connected from B to A") { REQUIRE(!connected); }
+    }
+    WHEN("The connectivity from E to A is Tested") {
+      REQUIRE_THROWS_WITH(
+          g.IsConnected("E", "A"),
+          "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    }
+    WHEN("The connectivity from A to E is Tested") {
+      REQUIRE_THROWS_WITH(
+          g.IsConnected("A", "E"),
+          "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
     }
   }
 }
 
 // GetConnected
-SCENARIO("Getting all destination nodes from a source node") {
-  GIVEN("A graph with 3 nodes and 2 edges") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertEdge("a", "c", 5);
-    g.InsertEdge("a", "b", 1);
-    WHEN("GetConnected is called") {
-      std::vector<std::string> vec = g.GetConnected("a");
-      THEN("vector should contain 2 nodes in sorted order") {
-        REQUIRE(vec.size() == 2);
-        REQUIRE(vec[0] == "b");
-        REQUIRE(vec[1] == "c");        
+SCENARIO("Getting nodes connected to a given node") {
+  GIVEN("A graph with 4 edges and 4 nodes, 1 Node from A and 0 nodes from D") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("B", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The connected nodes of A are received") {
+      auto connectedNodes = g.GetConnected("A");
+      THEN("There is one node in the list and it is B") {
+        REQUIRE(connectedNodes.size() == 1);
+        REQUIRE(connectedNodes[0] == "B");
       }
     }
-
-    WHEN("GetConnected is called on nodes that dont exist") {
-      REQUIRE_THROWS_WITH(g.GetConnected("d"), "Cannot call Graph::GetConnected if src doesn't exist in the graph");
+    WHEN("The connected nodes of D are received") {
+      auto connectedNodes = g.GetConnected("D");
+      THEN("There is no nodes in the list") { REQUIRE(connectedNodes.size() == 0); }
+    }
+    WHEN("The connected nodes of A are received") {
+      REQUIRE_THROWS_WITH(g.GetConnected("E"),
+                          "Cannot call Graph::GetConnected if src doesn't exist in the graph");
     }
   }
 }
 
 // GetWeights
-SCENARIO("Getting weight of edges from source to destination") {
-  GIVEN("A graph with 3 nodes and 2 edges") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertEdge("a", "b", 5);
-    g.InsertEdge("a", "b", 1);
-    WHEN("GetWeight is called") {
-      std::vector<int> vec = g.GetWeights("a", "b");
-      THEN("vector should contain 2 nodes in sorted order") {
-        REQUIRE(vec.size() == 2);
-        REQUIRE(vec[0] == 1);
-        REQUIRE(vec[1] == 5);        
+SCENARIO("Getting weights for edges between 2 given nodes") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("A", "B", -1), std::make_tuple("A", "B", 5),
+        std::make_tuple("A", "B", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The weights of edges from A->B are received") {
+      auto weights = g.GetWeights("A", "B");
+      THEN("There are 4 weights") { REQUIRE(weights.size() == 4); }
+      THEN("The weights are sorted") {
+        auto sortedWeights = weights;
+        std::sort(sortedWeights.begin(), sortedWeights.end());
+        REQUIRE(weights == sortedWeights);
       }
     }
-
-    WHEN("GetWeight is called on nodes that dont exist") {
-      REQUIRE_THROWS_WITH(g.GetWeights("d", "b"), "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    WHEN("The weights from A to E are received") {
+      REQUIRE_THROWS_WITH(
+          g.GetWeights("A", "E"),
+          "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    }
+    WHEN("The weights from E to A are received") {
+      REQUIRE_THROWS_WITH(
+          g.GetWeights("E", "A"),
+          "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
     }
   }
 }
