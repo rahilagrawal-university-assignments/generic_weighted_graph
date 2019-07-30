@@ -327,18 +327,188 @@ SCENARIO("Calling cbegin iterator on a graph") {
 }
 
 // cend
+SCENARIO("Calling cend iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("cend is called") {
+      auto end = g.cend();
+      end--;
+      THEN("cend-- must equal the last edge in sorted order") {
+        REQUIRE(std::get<0>(*end) == "b");
+        REQUIRE(std::get<1>(*end) == "c");
+        REQUIRE(std::get<2>(*end) == 5);
+      }
+      end--;
+      THEN("end-- should equal now equal the cbegin") {
+        REQUIRE(end == g.cbegin());
+      }
+    }
+  }
+}
 
 // begin
+SCENARIO("Calling begin iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("begin is called") {
+      auto start = g.begin();
+      THEN("start must equal first edge in sorted order") {
+        REQUIRE(std::get<0>(*start) == "a");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 1);
+      }
+      start++;
+      THEN("start++ should equal next edge") {
+        REQUIRE(std::get<0>(*start) == "b");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 5);
+      }
+      start++;
+      THEN("start++ should now equal end") { REQUIRE(start == g.end()); }
+    }
+  }
+}
 
 // end
+SCENARIO("Calling end iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("end is called") {
+      auto end = g.end();
+      end--;
+      THEN("end-- must equal the last node in sorted order") {
+        REQUIRE(std::get<0>(*end) == "b");
+        REQUIRE(std::get<1>(*end) == "c");
+        REQUIRE(std::get<2>(*end) == 5);
+      }
+      end--;
+      THEN("end-- should equal now equal the begin") {
+        REQUIRE(end == g.begin());
+      }
+    }
+  }
+}
 
 // crbegin
+SCENARIO("Calling crbegin iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("crbegin is called") {
+      auto start = g.crbegin();
+      THEN("start must equal last edge in sorted order") {
+        REQUIRE(std::get<0>(*start) == "b");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 5);
+      }
+      start++;
+      THEN("start++ should equal next edge") {
+        REQUIRE(std::get<0>(*start) == "a");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 1);
+      }
+      start++;
+      THEN("start++ should now equal crend") { REQUIRE(start == g.crend()); }
+    }
+  }
+}
 
 // crend
+SCENARIO("Calling crend iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("crend is called") {
+      auto end = g.crend();
+      end--;
+      THEN("crend-- must equal the last edge in sorted order") {
+        REQUIRE(std::get<0>(*end) == "a");
+        REQUIRE(std::get<1>(*end) == "c");
+        REQUIRE(std::get<2>(*end) == 1);
+      }
+      end--;
+      THEN("end should equal now equal the crbegin") {
+        REQUIRE(end == g.crbegin());
+      }
+    }
+  }
+}
 
 // rbegin
+SCENARIO("Calling rbegin iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("rbegin is called") {
+      auto start = g.rbegin();
+      THEN("start must equal last edge in sorted order") {
+        REQUIRE(std::get<0>(*start) == "b");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 5);
+      }
+      start++;
+      THEN("start++ should equal next edge") {
+        REQUIRE(std::get<0>(*start) == "a");
+        REQUIRE(std::get<1>(*start) == "c");
+        REQUIRE(std::get<2>(*start) == 1);
+      }
+      start++;
+      THEN("start++ should now equal rend") { REQUIRE(start == g.rend()); }
+    }
+  }
+}
 
 // rend
+SCENARIO("Calling rend iterator on a graph") {
+  GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("rend is called") {
+      auto end = g.rend();
+      end--;
+      THEN("crend-- must equal the last edge in sorted order") {
+        REQUIRE(std::get<0>(*end) == "a");
+        REQUIRE(std::get<1>(*end) == "c");
+        REQUIRE(std::get<2>(*end) == 1);
+      }
+      end--;
+      THEN("end should equal now equal the rbegin") {
+        REQUIRE(end == g.rbegin());
+      }
+    }
+  }
+}
 
 // ----------------------- Operations ------------------------------
 
