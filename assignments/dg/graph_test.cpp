@@ -14,7 +14,7 @@
 // ----------------------- Commonly Used Functions -----------------------
 
 // Default Constructor
-SCENARIO("Testing Default Constructor") {
+SCENARIO("Create a Graph using the Default Constructor") {
   GIVEN("A graph with default constructor") {
     gdwg::Graph<std::string, int> g;
     WHEN("size of graph is checked") {
@@ -25,24 +25,40 @@ SCENARIO("Testing Default Constructor") {
 }
 
 // InsertNode
-SCENARIO("Testing InsertNode") {
+SCENARIO("Inserting a node into the graph") {
   GIVEN("A graph with default constructor") {
     gdwg::Graph<std::string, int> g;
     WHEN("nodes are added") {
-      g.InsertNode("a");
-      g.InsertNode("b");
+      bool result1 = g.InsertNode("a");
+      bool result2 = g.InsertNode("b");
       std::vector<std::string> nodes = g.GetNodes();
       THEN("graph should contain 2 nodes") {
         REQUIRE(nodes.size() == 2);
         REQUIRE(nodes[0] == "a");
         REQUIRE(nodes[1] == "b");
+        REQUIRE(result1 == true);
+        REQUIRE(result2 == true);
+      }
+    }
+    WHEN("duplicate nodes are added") {
+      bool result1 = g.InsertNode("a");
+      bool result2 = g.InsertNode("b"); 
+      bool result3 = g.InsertNode("a");
+      std::vector<std::string> nodes = g.GetNodes();
+      THEN("duplicate node should not be added to the graph") {
+        REQUIRE(nodes.size() == 2);
+        REQUIRE(nodes[0] == "a");
+        REQUIRE(nodes[1] == "b");
+        REQUIRE(result1 == true);
+        REQUIRE(result2 == true);
+        REQUIRE(result3 == false);
       }
     }
   }
 }
 
 // IsEdge
-SCENARIO("Testing isEdge - has the edge") {
+SCENARIO("Checking is an edge exists in the graph") {
   GIVEN("A graph with default constructor and 2 nodes and 1 edge") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
@@ -52,16 +68,8 @@ SCENARIO("Testing isEdge - has the edge") {
       bool result = g.isEdge("a", "b", 5);
       THEN("result should be true") { REQUIRE(result == true); }
     }
-  }
-}
 
-SCENARIO("Testing isEdge - does not have the edge") {
-  GIVEN("A graph with default constructor and 2 nodes and 1 edge") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    g.InsertEdge("a", "b", 5);
-    WHEN("IisEdge is called with different edge") {
+    WHEN("IisEdge is called with non existent edge") {
       bool result = g.isEdge("a", "b", 10);
       THEN("result should be false") { REQUIRE(result == false); }
     }
@@ -69,7 +77,7 @@ SCENARIO("Testing isEdge - does not have the edge") {
 }
 
 // InsertEdge
-SCENARIO("Testing InsertEdge") {
+SCENARIO("Inserting an edge into the graph") {
   GIVEN("A graph with default constructor and 2 nodes") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
@@ -80,15 +88,8 @@ SCENARIO("Testing InsertEdge") {
         REQUIRE(g.isEdge("a", "b", 5) == true);
       }
     }
-  }
-}
 
-SCENARIO("Testing InsertEdge - exception") {
-  GIVEN("A graph with default constructor and 2 nodes") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    WHEN("edge is added") {
+    WHEN("edge with a non existent node is added") {
       REQUIRE_THROWS_WITH(
           g.InsertEdge("d", "b", 5),
           "Cannot call Graph::InsertEdge when either src or dst node does not exist");
@@ -97,7 +98,7 @@ SCENARIO("Testing InsertEdge - exception") {
 }
 
 // GetNodes
-SCENARIO("Testing GetNodes has all nodes correctly entered") {
+SCENARIO("Creating a vector of nodes in the graph") {
   GIVEN("A graph with default constructor and 2 nodes") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
@@ -110,17 +111,10 @@ SCENARIO("Testing GetNodes has all nodes correctly entered") {
         REQUIRE(nodes[1] == "b");
       }
     }
-  }
-}
 
-SCENARIO("Testing that GetNodes returns sorted order") {
-  GIVEN("A graph with default constructor and 4 nodes") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("b");
-    g.InsertNode("c");
-    g.InsertNode("a");
-    g.InsertNode("d");
-    WHEN("getNodes is called") {
+    WHEN("more nodes are added") {
+      g.InsertNode("d");
+      g.InsertNode("c");
       std::vector<std::string> nodes = g.GetNodes();
       THEN("nodes vector should have 4 nodes in sorted order") {
         REQUIRE(nodes.size() == 4);
@@ -134,66 +128,53 @@ SCENARIO("Testing that GetNodes returns sorted order") {
 }
 
 // Equality Operator Overload
-SCENARIO("Testing == that is true") {
-  GIVEN("2 graphs with default constructor and 2 nodes") {
+SCENARIO("Checking if 2 graphs are equal") {
+  GIVEN("Create 2 equal graphs and 1 not equal graph") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
     g.InsertNode("b");
     gdwg::Graph<std::string, int> h;
     h.InsertNode("a");
     h.InsertNode("b");
-    WHEN("equality is tested") {
+    gdwg::Graph<std::string, int> i;
+    i.InsertNode("a");
+    i.InsertNode("d");
+    WHEN("equality is tested on 2 equal graphs") {
       bool result = (g == h);
       THEN("result should be true") { REQUIRE(result == true); }
     }
-  }
-}
 
-SCENARIO("Testing == that is false") {
-  GIVEN("2 graphs with default constructor and 2 nodes") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    gdwg::Graph<std::string, int> h;
-    g.InsertNode("d");
-    g.InsertNode("b");
-    WHEN("equality is tested") {
-      bool result = (g == h);
+    WHEN("equality is tested on 2 not equal graphs") {
+      bool result = (g == i);
       THEN("result should be false") { REQUIRE(result == false); }
     }
   }
 }
 
 // Inequality Operator Overload
-SCENARIO("Testing != that is false") {
-  GIVEN("2 graphs with default constructor and 2 nodes") {
+SCENARIO("Checking if 2 graphs are not equal") {
+  GIVEN("Create 2 equal graphs and 1 not equal graph") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
     g.InsertNode("b");
     gdwg::Graph<std::string, int> h;
     h.InsertNode("a");
     h.InsertNode("b");
-    WHEN("inequality is tested") {
+    gdwg::Graph<std::string, int> i;
+    i.InsertNode("a");
+    i.InsertNode("d");
+    WHEN("inequality is tested on 2 equal graphs") {
       bool result = (g != h);
       THEN("result should be false") { REQUIRE(result == false); }
     }
-  }
-}
 
-SCENARIO("Testing != that is true") {
-  GIVEN("2 graphs with default constructor and 2 nodes") {
-    gdwg::Graph<std::string, int> g;
-    g.InsertNode("a");
-    g.InsertNode("b");
-    gdwg::Graph<std::string, int> h;
-    g.InsertNode("d");
-    g.InsertNode("b");
-    WHEN("inequality is tested") {
-      bool result = (g != h);
+    WHEN("inequality is tested on 2 not equal graphs") {
+      bool result = (g != i);
       THEN("result should be true") { REQUIRE(result == true); }
     }
   }
 }
+
 
 // ----------------------- Constructors ----------------------------
 
@@ -302,7 +283,7 @@ SCENARIO("Create a Graph by move constructing another graph") {
 // ----------------------- Iterator Constructors -----------------------
 
 // cbegin
-SCENARIO("Testing cbegin") {
+SCENARIO("Calling cbegin iterator on a graph") {
   GIVEN("A graph with default constructor and 3 nodes and 2 edges") {
     gdwg::Graph<std::string, int> g;
     g.InsertNode("a");
@@ -461,20 +442,204 @@ SCENARIO("Replacing a Node in a Graph") {
 // MergeReplace
 
 // Clear
+SCENARIO("Clearing a Graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("clear is called") {
+      g.Clear();
+      THEN("Graph should be empty") {
+        auto nodes = g.GetNodes();
+        REQUIRE(nodes.size() == 0);
+        REQUIRE(g.isEdge("b", "c", 5) == false);
+        REQUIRE(g.isEdge("a", "c", 1) == false);
+      }
+
+      THEN("New nodes can still be added") {
+        bool result1 = g.InsertNode("d");
+        auto nodes = g.GetNodes();
+        REQUIRE(nodes.size() == 1);
+        REQUIRE(nodes[0] == "d");
+        REQUIRE(result1 == true);
+      }
+    }
+  }
+}
 
 // IsNode
+SCENARIO("Checking is there is a particular node in the graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("IsNode is called") {
+      bool result1 = g.IsNode("a");
+      bool result2 = g.IsNode("d");
+      THEN("a should in the graph and d should not be in the graph") {
+        REQUIRE(result1 == true);
+        REQUIRE(result2 == false);
+      }
+    }
+  }
+}
 
 // IsConnected
+SCENARIO("Checking is there is a particular edge in the graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "c", 1);
+    WHEN("IsConnected is called") {
+      bool result1 = g.IsConnected("a", "c");
+      bool result2 = g.IsConnected("a", "b");
+      THEN("edge from a to c is true and edge from b to c is false") {
+        REQUIRE(result1 == true);
+        REQUIRE(result2 == false);
+      }
+    }
+
+    WHEN("IsConnected is called on nodes that dont exist") {
+      REQUIRE_THROWS_WITH(g.IsConnected("d", "e"), "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    }
+  }
+}
 
 // GetConnected
+SCENARIO("Getting all destination nodes from a source node") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("a", "c", 5);
+    g.InsertEdge("a", "b", 1);
+    WHEN("GetConnected is called") {
+      std::vector<std::string> vec = g.GetConnected("a");
+      THEN("vector should contain 2 nodes in sorted order") {
+        REQUIRE(vec.size() == 2);
+        REQUIRE(vec[0] == "b");
+        REQUIRE(vec[1] == "c");        
+      }
+    }
+
+    WHEN("GetConnected is called on nodes that dont exist") {
+      REQUIRE_THROWS_WITH(g.GetConnected("d"), "Cannot call Graph::GetConnected if src doesn't exist in the graph");
+    }
+  }
+}
 
 // GetWeights
+SCENARIO("Getting weight of edges from source to destination") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("a", "b", 5);
+    g.InsertEdge("a", "b", 1);
+    WHEN("GetWeight is called") {
+      std::vector<int> vec = g.GetWeights("a", "b");
+      THEN("vector should contain 2 nodes in sorted order") {
+        REQUIRE(vec.size() == 2);
+        REQUIRE(vec[0] == 1);
+        REQUIRE(vec[1] == 5);        
+      }
+    }
+
+    WHEN("GetWeight is called on nodes that dont exist") {
+      REQUIRE_THROWS_WITH(g.GetWeights("d", "b"), "Cannot call Graph::GetWeights if src or dst node don't exist in the graph");
+    }
+  }
+}
 
 // erase
+SCENARIO("Erasing an edge from the graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "b", 1);
+    WHEN("GetWeight is called") {
+      bool result1 = g.erase("a", "b", 1);
+      bool result2 = g.erase("a", "b", 1);
+      THEN("edge from a to b with weight 1 should be removed") {
+        REQUIRE(g.isEdge("a", "b", 1) == false);
+        REQUIRE(result1 == true);
+        REQUIRE(result2 == false);        
+      }
+    }
+  }
+}
 
 // Iterator find
+SCENARIO("Finding a particular edge in the graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "b", 1);
+    WHEN("find is called") {
+      auto it = g.find("a", "b", 1);
+      THEN("iterator should point to the edge from a to b with weight 1") {
+        REQUIRE(std::get<0>(*it) == "a");
+        REQUIRE(std::get<1>(*it) == "b");
+        REQUIRE(std::get<2>(*it) == 1);
+      }
+    }
+
+    WHEN("find is called for a edge that does not exist") {
+      auto it = g.find("a", "c", 2);
+      THEN("iterator should equal cend") {
+        REQUIRE(it == g.cend());
+      }
+    }
+  }
+}
 
 // Iterator erase
+SCENARIO("Erasing an edge using an iterator in the graph") {
+  GIVEN("A graph with 3 nodes and 2 edges") {
+    gdwg::Graph<std::string, int> g;
+    g.InsertNode("a");
+    g.InsertNode("b");
+    g.InsertNode("c");
+    g.InsertEdge("b", "c", 5);
+    g.InsertEdge("a", "b", 1);
+    auto it = g.find("a", "b", 1);
+    WHEN("erase is called") {
+      it = g.erase(it);
+      THEN("edge should be erased and iterator should point to next edge") {
+        REQUIRE(g.isEdge("a", "b", 1) == false);
+        REQUIRE(std::get<0>(*it) == "b");
+        REQUIRE(std::get<1>(*it) == "c");
+        REQUIRE(std::get<2>(*it) == 5);
+      }
+    }
+
+    WHEN("erase is called for a edge that does not exist") {
+      auto it = g.find("a", "b", 2);
+      it = g.erase(it);      
+      THEN("iterator should equal cend") {
+        REQUIRE(it == g.cend());
+      }
+    }
+  }
+}
+
 
 // ----------------------- Friends ---------------------------------
 
