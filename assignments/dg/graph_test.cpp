@@ -563,8 +563,57 @@ SCENARIO("Clearing a Graph") {
 }
 
 // IsConnected
+SCENARIO("Checking connectivity of 2 nodes in a Graph") {
+  GIVEN("A graph with 4 edges and 4 nodes") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("D", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The connectivity from A to B is Tested") {
+      bool connected = g.IsConnected("A", "B");
+      THEN("A and B are connected from A to B") { REQUIRE(connected); }
+    }
+    WHEN("The connectivity from B to A is Tested") {
+      bool connected = g.IsConnected("B", "A");
+      THEN("A and B are not connected from B to A") { REQUIRE(!connected); }
+    }
+    WHEN("The connectivity from E to A is Tested") {
+      REQUIRE_THROWS_WITH(
+          g.IsConnected("E", "A"),
+          "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    }
+    WHEN("The connectivity from A to E is Tested") {
+      REQUIRE_THROWS_WITH(
+          g.IsConnected("A", "E"),
+          "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
+    }
+  }
+}
 
 // GetConnected
+SCENARIO("Getting nodes connected to a given node") {
+  GIVEN("A graph with 4 edges and 4 nodes, 1 Node from A and 0 nodes from D") {
+    std::vector<std::tuple<std::string, std::string, int>> vecTuples{
+        std::make_tuple("A", "B", 1), std::make_tuple("B", "C", 2), std::make_tuple("C", "D", 3),
+        std::make_tuple("B", "A", 4)};
+    gdwg::Graph<std::string, int> g{vecTuples.begin(), vecTuples.end()};
+    WHEN("The connected nodes of A are received") {
+      auto connectedNodes = g.GetConnected("A");
+      THEN("There is one node in the list and it is B") {
+        REQUIRE(connectedNodes.size() == 1);
+        REQUIRE(connectedNodes[0] == "B");
+      }
+    }
+    WHEN("The connected nodes of D are received") {
+      auto connectedNodes = g.GetConnected("D");
+      THEN("There is no nodes in the list") { REQUIRE(connectedNodes.size() == 0); }
+    }
+    WHEN("The connected nodes of A are received") {
+      REQUIRE_THROWS_WITH(g.GetConnected("E"),
+                          "Cannot call Graph::GetConnected if src doesn't exist in the graph");
+    }
+  }
+}
 
 // GetWeights
 
