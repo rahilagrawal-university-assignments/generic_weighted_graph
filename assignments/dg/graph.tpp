@@ -41,7 +41,6 @@ Graph<N, E>::Graph(const Graph& g) {
 
 template <typename N, typename E>
 Graph<N, E>& Graph<N, E>::operator=(const Graph& g) noexcept {
-
   for (auto node : g.nodes)
     InsertNode(*node);
   for (auto edge : g.edges) {
