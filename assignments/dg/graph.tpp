@@ -28,9 +28,9 @@ Graph<N, E>::Graph(typename std::initializer_list<N> nodes) {
 
 template <typename N, typename E>
 Graph<N, E>::Graph(const Graph& g) {
-  for (auto node : g.nodes)
+  for (auto node : g.nodes_)
     InsertNode(*node);
-  for (auto edge : g.edges) {
+  for (auto edge : g.edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     InsertEdge(*source, *destination, edge->weight_);
@@ -41,9 +41,9 @@ Graph<N, E>::Graph(const Graph& g) {
 
 template <typename N, typename E>
 Graph<N, E>& Graph<N, E>::operator=(const Graph& g) noexcept {
-  for (auto node : g.nodes)
+  for (auto node : g.nodes_)
     InsertNode(*node);
-  for (auto edge : g.edges) {
+  for (auto edge : g.edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     InsertEdge(*source, *destination, edge->weight_);
@@ -56,7 +56,7 @@ Graph<N, E>& Graph<N, E>::operator=(const Graph& g) noexcept {
 
 template <typename N, typename E>
 bool Graph<N, E>::IsNode(const N& val) const noexcept {
-  for (auto node : nodes) {
+  for (auto node : nodes_) {
     if (*node == val)
       return true;
   }
@@ -68,7 +68,7 @@ bool Graph<N, E>::InsertNode(const N& val) noexcept {
   if (IsNode(val)) {
     return false;
   }
-  nodes.push_back(std::make_shared<N>(val));
+  nodes_.push_back(std::make_shared<N>(val));
   return true;
 }
 
@@ -82,26 +82,26 @@ bool Graph<N, E>::InsertEdge(const N& src, const N& dst, const E& w) {
     throw std::runtime_error(
         "Cannot call Graph::InsertEdge when either src or dst node does not exist");
   }
-  edges.insert(std::make_shared<Edge>(source, destination, w));
+  edges_.insert(std::make_shared<Edge>(source, destination, w));
 
   return true;
 }
 
 template <typename N, typename E>
 bool Graph<N, E>::DeleteNode(const N& val) noexcept {
-  for (auto nodeItr = nodes.begin(); nodeItr != nodes.end(); nodeItr++) {
+  for (auto nodeItr = nodes_.begin(); nodeItr != nodes_.end(); nodeItr++) {
     auto node = *nodeItr;
     if (*node == val) {
       // Remove from nodes
-      nodes.erase(nodeItr);
+      nodes_.erase(nodeItr);
 
       // Remove its edges
-      for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+      for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
         auto edge = *edgeItr;
         shared_ptr<N> source = edge->source_.lock();
         shared_ptr<N> destination = edge->destination_.lock();
         if (val == *source || val == *destination) {
-          edgeItr = edges.erase(edgeItr);
+          edgeItr = edges_.erase(edgeItr);
           edgeItr--;
         }
       }
@@ -139,37 +139,33 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   }
 
   // Change the edges
-  for (auto edgeItr = edges.begin(); edgeItr != edges.end();) {
+  for (auto edgeItr = edges_.begin(); edgeItr != edges_.end();) {
     auto edge = *edgeItr;
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
 
     if (oldData == *source && oldData == *destination) {
       // Delete the edge
-      edgeItr = edges.erase(edgeItr);
+      edgeItr = edges_.erase(edgeItr);
       // Add Edge if not already there
       InsertEdge(newData, newData, edge->weight_);
     } else if (oldData == *source) {
-      edgeItr = edges.erase(edgeItr);
+      edgeItr = edges_.erase(edgeItr);
       InsertEdge(newData, *destination, edge->weight_);
     } else if (oldData == *destination) {
-      edgeItr = edges.erase(edgeItr);
+      edgeItr = edges_.erase(edgeItr);
       InsertEdge(*source, newData, edge->weight_);
     } else {
       edgeItr++;
     }
   }
 
-  for (auto edge : edges) {
-    shared_ptr<N> source = edge->source_.lock();
-    shared_ptr<N> destination = edge->destination_.lock();
-  }
   // Remove the oldData Node
-  for (auto nodeItr = nodes.begin(); nodeItr != nodes.end(); nodeItr++) {
+  for (auto nodeItr = nodes_.begin(); nodeItr != nodes_.end(); nodeItr++) {
     auto node = *nodeItr;
     if (*node == oldData) {
       // Remove from nodes
-      nodes.erase(nodeItr);
+      nodes_.erase(nodeItr);
       break;
     }
   }
@@ -177,8 +173,8 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
 
 template <typename N, typename E>
 void Graph<N, E>::Clear() noexcept {
-  nodes.clear();
-  edges.clear();
+  nodes_.clear();
+  edges_.clear();
 }
 
 template <typename N, typename E>
@@ -188,7 +184,7 @@ bool Graph<N, E>::IsConnected(const N& src, const N& dst) const {
         "Cannot call Graph::IsConnected if src or dst node don't exist in the graph");
   }
 
-  for (auto edge : edges) {
+  for (auto edge : edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination)
@@ -200,7 +196,7 @@ bool Graph<N, E>::IsConnected(const N& src, const N& dst) const {
 template <typename N, typename E>
 std::vector<N> Graph<N, E>::GetNodes() const noexcept {
   std::vector<N> results;
-  for (auto node : nodes) {
+  for (auto node : nodes_) {
     results.push_back(*node);
   }
   std::sort(results.begin(), results.end());
@@ -213,7 +209,7 @@ std::vector<N> Graph<N, E>::GetConnected(const N& src) const {
     throw std::out_of_range("Cannot call Graph::GetConnected if src doesn't exist in the graph");
 
   std::vector<N> results;
-  for (auto edge : edges) {
+  for (auto edge : edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source)
@@ -231,7 +227,7 @@ std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) const {
   }
 
   std::vector<E> results;
-  for (auto edge : edges) {
+  for (auto edge : edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination)
@@ -243,12 +239,12 @@ std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) const {
 
 template <typename N, typename E>
 bool Graph<N, E>::erase(const N& src, const N& dst, const E& w) noexcept {
-  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+  for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
     auto edge = *edgeItr;
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination && w == edge->weight_) {
-      edges.erase(edgeItr);
+      edges_.erase(edgeItr);
       return true;
     }
   }
@@ -258,33 +254,33 @@ bool Graph<N, E>::erase(const N& src, const N& dst, const E& w) noexcept {
 template <typename N, typename E>
 typename Graph<N, E>::const_iterator Graph<N, E>::find(const N& src, const N& dst, const E& w) const
     noexcept {
-  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+  for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
     auto edge = *edgeItr;
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination && w == edge->weight_) {
-      return {edgeItr, edges.cbegin(), edges.cend()};
+      return {edgeItr, edges_.cbegin(), edges_.cend()};
     }
   }
-  return {edges.cend(), edges.cbegin(), edges.cend()};
+  return {edges_.cend(), edges_.cbegin(), edges_.cend()};
 }
 
 template <typename N, typename E>
 typename Graph<N, E>::const_iterator Graph<N, E>::erase(const_iterator it) noexcept {
-  for (auto edgeItr = edges.begin(); edgeItr != edges.end(); edgeItr++) {
+  for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
     if (edgeItr == it.edge_itr_) {
-      edgeItr = edges.erase(edgeItr);
-      return {edgeItr, edges.cbegin(), edges.cend()};
+      edgeItr = edges_.erase(edgeItr);
+      return {edgeItr, edges_.cbegin(), edges_.cend()};
     }
   }
-  return {edges.cend(), edges.cbegin(), edges.cend()};
+  return {edges_.cend(), edges_.cbegin(), edges_.cend()};
 }
 
 // ----------------------- Helper Functions ----------------------------
 
 template <typename N, typename E>
 shared_ptr<N> Graph<N, E>::getNode(const N& val) const noexcept {
-  for (auto node : nodes) {
+  for (auto node : nodes_) {
     if (*node == val)
       return node;
   }
@@ -293,7 +289,7 @@ shared_ptr<N> Graph<N, E>::getNode(const N& val) const noexcept {
 
 template <typename N, typename E>
 bool Graph<N, E>::isEdge(const N& src, const N& dst, const E& w) const noexcept {
-  for (auto edge : edges) {
+  for (auto edge : edges_) {
     shared_ptr<N> source = edge->source_.lock();
     shared_ptr<N> destination = edge->destination_.lock();
     if (src == *source && dst == *destination && w == edge->weight_)

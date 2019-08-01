@@ -44,7 +44,7 @@ class Graph {
 
   std::set<shared_ptr<Edge>, sortEdges> getOutEdges(const N& node) const {
     std::set<shared_ptr<Edge>, sortEdges> nodeEdges;
-    for (auto edge : edges) {
+    for (auto edge : edges_) {
       shared_ptr<N> source = edge->source_.lock();
       if (*source == node) {
         nodeEdges.insert(edge);
@@ -54,8 +54,8 @@ class Graph {
     return nodeEdges;
   }
 
-  std::vector<shared_ptr<N>> nodes;
-  std::set<shared_ptr<Edge>, sortEdges> edges;
+  std::vector<shared_ptr<N>> nodes_;
+  std::set<shared_ptr<Edge>, sortEdges> edges_;
 
  public:
   // Iterators
@@ -177,16 +177,18 @@ class Graph {
   };
 
   // Iterator Constructors
-  const_iterator cbegin() const { return {edges.cbegin(), edges.cbegin(), edges.cend()}; }
-  const_iterator cend() const { return {edges.cend(), edges.cbegin(), edges.cend()}; }
-  const_iterator begin() { return {edges.cbegin(), edges.cbegin(), edges.cend()}; }
-  const_iterator end() { return {edges.cend(), edges.cbegin(), edges.cend()}; }
+  const_iterator cbegin() const { return {edges_.cbegin(), edges_.cbegin(), edges_.cend()}; }
+  const_iterator cend() const { return {edges_.cend(), edges_.cbegin(), edges_.cend()}; }
+  const_iterator begin() { return {edges_.cbegin(), edges_.cbegin(), edges_.cend()}; }
+  const_iterator end() { return {edges_.cend(), edges_.cbegin(), edges_.cend()}; }
   const_reverse_iterator crbegin() const {
-    return {edges.crbegin(), edges.crbegin(), edges.crend()};
+    return {edges_.crbegin(), edges_.crbegin(), edges_.crend()};
   }
-  const_reverse_iterator crend() const { return {edges.crend(), edges.crbegin(), edges.crend()}; }
-  const_reverse_iterator rbegin() { return {edges.crbegin(), edges.crbegin(), edges.crend()}; }
-  const_reverse_iterator rend() { return {edges.crend(), edges.crbegin(), edges.crend()}; }
+  const_reverse_iterator crend() const {
+    return {edges_.crend(), edges_.crbegin(), edges_.crend()};
+  }
+  const_reverse_iterator rbegin() { return {edges_.crbegin(), edges_.crbegin(), edges_.crend()}; }
+  const_reverse_iterator rend() { return {edges_.crend(), edges_.crbegin(), edges_.crend()}; }
 
   // ----------------------- Constructors ----------------------------
 
@@ -246,12 +248,12 @@ class Graph {
   // Equality Operator Overload
   friend bool operator==(const Graph& g1, const Graph& g2) {
     // Compare if nodes are the same
-    if (g1.nodes.size() != g2.nodes.size())
+    if (g1.nodes_.size() != g2.nodes_.size())
       return false;
 
-    for (auto nodeG1 : g1.nodes) {
+    for (auto nodeG1 : g1.nodes_) {
       auto present = false;
-      for (auto nodeG2 : g2.nodes) {
+      for (auto nodeG2 : g2.nodes_) {
         if (*nodeG1 == *nodeG2) {
           present = true;
           break;
@@ -262,12 +264,12 @@ class Graph {
     }
 
     // Compare if edges are the same
-    if (g1.edges.size() != g2.edges.size())
+    if (g1.edges_.size() != g2.edges_.size())
       return false;
 
-    for (auto edgeG1 : g1.edges) {
+    for (auto edgeG1 : g1.edges_) {
       auto present = false;
-      for (auto edgeG2 : g2.edges) {
+      for (auto edgeG2 : g2.edges_) {
         shared_ptr<N> source1 = edgeG1->source_.lock();
         shared_ptr<N> destination1 = edgeG1->destination_.lock();
         shared_ptr<N> source2 = edgeG2->source_.lock();
@@ -290,7 +292,7 @@ class Graph {
 
   // OutStream Operator Overload
   friend std::ostream& operator<<(std::ostream& os, const Graph& g) {
-    std::vector<shared_ptr<N>> nodes = g.nodes;
+    std::vector<shared_ptr<N>> nodes = g.nodes_;
 
     std::sort(nodes.begin(), nodes.end(),
               [](const shared_ptr<N>& a, const shared_ptr<N>& b) -> bool { return *a < *b; });
