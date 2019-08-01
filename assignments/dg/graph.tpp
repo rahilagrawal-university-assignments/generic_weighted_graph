@@ -1,5 +1,5 @@
 // ----------------------- Constructors ----------------------------
-
+// Constructor that takes in vector of nodes
 template <typename N, typename E>
 Graph<N, E>::Graph(typename std::vector<N>::const_iterator begin,
                    typename std::vector<N>::const_iterator end) {
@@ -9,6 +9,7 @@ Graph<N, E>::Graph(typename std::vector<N>::const_iterator begin,
   }
 }
 
+// Constructor that takes in a vector of tuples
 template <typename N, typename E>
 Graph<N, E>::Graph(typename std::vector<std::tuple<N, N, E>>::const_iterator begin,
                    typename std::vector<std::tuple<N, N, E>>::const_iterator end) {
@@ -20,12 +21,14 @@ Graph<N, E>::Graph(typename std::vector<std::tuple<N, N, E>>::const_iterator beg
   }
 }
 
+// Constructor that takes in a initializer list of nodes
 template <typename N, typename E>
 Graph<N, E>::Graph(typename std::initializer_list<N> nodes) {
   for (auto node : nodes)
     InsertNode(node);
 }
 
+// Copy Constructor
 template <typename N, typename E>
 Graph<N, E>::Graph(const Graph& g) {
   for (auto node : g.nodes_)
@@ -38,7 +41,7 @@ Graph<N, E>::Graph(const Graph& g) {
 }
 
 // ----------------------- Operations ----------------------------
-
+// Copy Assignment Operator
 template <typename N, typename E>
 Graph<N, E>& Graph<N, E>::operator=(const Graph& g) noexcept {
   for (auto node : g.nodes_)
@@ -53,7 +56,7 @@ Graph<N, E>& Graph<N, E>::operator=(const Graph& g) noexcept {
 }
 
 // ----------------------- Methods ----------------------------
-
+// Check is a particular node is in the graph
 template <typename N, typename E>
 bool Graph<N, E>::IsNode(const N& val) const noexcept {
   for (auto node : nodes_) {
@@ -63,6 +66,7 @@ bool Graph<N, E>::IsNode(const N& val) const noexcept {
   return false;
 }
 
+// Inserts a node into the graph
 template <typename N, typename E>
 bool Graph<N, E>::InsertNode(const N& val) noexcept {
   if (IsNode(val)) {
@@ -72,6 +76,7 @@ bool Graph<N, E>::InsertNode(const N& val) noexcept {
   return true;
 }
 
+// Inserts an edge into the graph
 template <typename N, typename E>
 bool Graph<N, E>::InsertEdge(const N& src, const N& dst, const E& w) {
   if (isEdge(src, dst, w))
@@ -87,6 +92,7 @@ bool Graph<N, E>::InsertEdge(const N& src, const N& dst, const E& w) {
   return true;
 }
 
+// Deletes a node from the graph
 template <typename N, typename E>
 bool Graph<N, E>::DeleteNode(const N& val) noexcept {
   for (auto nodeItr = nodes_.begin(); nodeItr != nodes_.end(); nodeItr++) {
@@ -111,6 +117,7 @@ bool Graph<N, E>::DeleteNode(const N& val) noexcept {
   return false;
 }
 
+// Replaces oldData by the newData
 template <typename N, typename E>
 bool Graph<N, E>::Replace(const N& oldData, const N& newData) {
   // Check if oldData is present
@@ -130,6 +137,8 @@ bool Graph<N, E>::Replace(const N& oldData, const N& newData) {
   return true;
 }
 
+// All instances of oldData is replaced by newData
+// Every incoming and outgoing edge of oldData becomes an incoming/ougoing edge of newData
 template <typename N, typename E>
 void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   // Check if both nodes are present
@@ -171,12 +180,14 @@ void Graph<N, E>::MergeReplace(const N& oldData, const N& newData) {
   }
 }
 
+// Clears the entire graph
 template <typename N, typename E>
 void Graph<N, E>::Clear() noexcept {
   nodes_.clear();
   edges_.clear();
 }
 
+// Checks if 2 nodes are connected by an edge
 template <typename N, typename E>
 bool Graph<N, E>::IsConnected(const N& src, const N& dst) const {
   if (!IsNode(src) || !IsNode(dst)) {
@@ -193,6 +204,7 @@ bool Graph<N, E>::IsConnected(const N& src, const N& dst) const {
   return false;
 }
 
+// Gets all nodes of the graph
 template <typename N, typename E>
 std::vector<N> Graph<N, E>::GetNodes() const noexcept {
   std::vector<N> results;
@@ -203,6 +215,7 @@ std::vector<N> Graph<N, E>::GetNodes() const noexcept {
   return results;
 }
 
+// Gets all edges of a particular node
 template <typename N, typename E>
 std::vector<N> Graph<N, E>::GetConnected(const N& src) const {
   if (!IsNode(src))
@@ -219,6 +232,7 @@ std::vector<N> Graph<N, E>::GetConnected(const N& src) const {
   return results;
 }
 
+// Get the weights of all edges connecting src and dst
 template <typename N, typename E>
 std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) const {
   if (!IsNode(src) || !IsNode(dst)) {
@@ -237,6 +251,7 @@ std::vector<E> Graph<N, E>::GetWeights(const N& src, const N& dst) const {
   return results;
 }
 
+// Erases a edge from the graph
 template <typename N, typename E>
 bool Graph<N, E>::erase(const N& src, const N& dst, const E& w) noexcept {
   for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
@@ -251,6 +266,7 @@ bool Graph<N, E>::erase(const N& src, const N& dst, const E& w) noexcept {
   return false;
 }
 
+// Finds a particular edge in the graph and returns it as an iterator
 template <typename N, typename E>
 typename Graph<N, E>::const_iterator Graph<N, E>::find(const N& src, const N& dst, const E& w) const
     noexcept {
@@ -265,6 +281,7 @@ typename Graph<N, E>::const_iterator Graph<N, E>::find(const N& src, const N& ds
   return {edges_.cend(), edges_.cbegin(), edges_.cend()};
 }
 
+// Erases an edge from the graph and returns an iterator to the next edge
 template <typename N, typename E>
 typename Graph<N, E>::const_iterator Graph<N, E>::erase(const_iterator it) noexcept {
   for (auto edgeItr = edges_.begin(); edgeItr != edges_.end(); edgeItr++) {
@@ -277,7 +294,7 @@ typename Graph<N, E>::const_iterator Graph<N, E>::erase(const_iterator it) noexc
 }
 
 // ----------------------- Helper Functions ----------------------------
-
+// Returns a shared_ptr to a particular node
 template <typename N, typename E>
 shared_ptr<N> Graph<N, E>::getNode(const N& val) const noexcept {
   for (auto node : nodes_) {
@@ -287,6 +304,7 @@ shared_ptr<N> Graph<N, E>::getNode(const N& val) const noexcept {
   return nullptr;
 }
 
+// Returhs true if there is an edge from src to dst with weight w
 template <typename N, typename E>
 bool Graph<N, E>::isEdge(const N& src, const N& dst, const E& w) const noexcept {
   for (auto edge : edges_) {
